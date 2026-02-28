@@ -245,3 +245,28 @@ Both local (127.0.0.1:3334) and Tailscale funnel URLs return:
 - Voice setup guide: https://www.getopenclaw.ai/help/voice-tts-setup
 - Voice mode tutorial: https://www.open-clawai.com/en/tutorials/voice
 - GitHub issue (Vapi+ElevenLabs): https://github.com/openclaw/openclaw/issues/13354
+
+## Session Feb 28 2026 — Root Cause Found
+
+### Diagnosis
+**Root cause: Tailscale funnel was NOT running during test calls.**
+
+### Evidence
+1. Twilio call logs: webhook responded with correct TwiML (Connect/Stream)
+2. Twilio error 31920: Stream Connection Declined (WebSocket unreachable)
+3. Gateway log: Inbound call accepted but NO WebSocket upgrade during calls
+4. WebSocket upgrades only appeared AFTER funnel started in later session
+
+### What Was Verified Working (with funnel running)
+- WebSocket upgrade through funnel: 101 SUCCESS
+- Data flow through WebSocket: CONFIRMED
+- MediaStream start processing: CONFIRMED
+- Server correctly processes Twilio start messages
+
+### Funnel Command
+tailscale funnel --bg 3334
+(Full path: /Applications/Tailscale.app/Contents/MacOS/Tailscale funnel --bg 3334)
+
+### Remaining Risk
+- Funnel persistence across reboots - may need launchd service
+- Live call test with Bill still needed to confirm end-to-end
