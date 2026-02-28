@@ -270,3 +270,13 @@ tailscale funnel --bg 3334
 ### Remaining Risk
 - Funnel persistence across reboots - may need launchd service
 - Live call test with Bill still needed to confirm end-to-end
+
+### Quality Fix Applied Feb 28 2026 ~1:15am EST
+Added to ~/.openclaw/settings/tts.json under tts.elevenlabs:
+- outputFormat: ulaw_8000 (matches Twilio native codec, eliminates transcoding)
+- optimizeStreamingLatency: 3 (ElevenLabs low-latency mode)
+
+Previous default: mp3_44100_128 → forced server to downsample/transcode
+New: direct mulaw 8kHz output → zero transcoding, less latency, cleaner audio
+
+Observed AI response latency: 8-27 seconds per turn (LLM processing, not network)
