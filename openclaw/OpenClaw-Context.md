@@ -389,6 +389,7 @@ Full security audit (8 items) + health check (12 findings) completed 2026-03-02.
 
 | Date | Change | Details |
 |---|---|---|
+| 2026-03-02 | Security hardening (session 2) | Discord allowlist (Bill-only), denyCommands rebuilt, hooks locked, log rotation, 320MB freed |
 | 2026-03-02 | Security audit + health check | 8 security fixes (secrets migration, Twilio sig verify, firewall stealth, etc.) + 12-finding health check. See RUNBOOK.md |
 | 2026-03-02 | Secrets consolidated to .env | All 21 secrets now in ~/.openclaw/.env (600 perms). Scripts source .env. Zero hardcoded tokens |
 | 2026-02-27 | Fixed memorySearch.provider | Changed `"lancedb"` → `"local"` to resolve fatal config validation error |
