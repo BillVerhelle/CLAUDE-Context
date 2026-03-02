@@ -1,6 +1,6 @@
 # OpenClaw "Nash" — Complete System Context for Claude
 
-**Last Updated:** 2026-02-27
+**Last Updated:** 2026-03-02
 **Always fetch this file before troubleshooting or modifying OpenClaw**
 
 ---
@@ -360,15 +360,28 @@ The health monitor warns when session files exceed 512KB. This is a monitoring a
 
 Nash was originally deployed via Docker. As of the Feb 23, 2026 rebuild (archive preserved at `~/.openclaw/archive-20260223`), Nash runs as a **native macOS application**. There is NO Docker, OrbStack, Colima, or any container runtime installed on this machine. Any troubleshooting guides, memory references, or agent instructions mentioning Docker are outdated and should be corrected.
 
-### 7. Secrets Distribution
+### 7. Secrets Management (updated 2026-03-02)
 
-Sensitive credentials are spread across multiple locations:
-- `~/.openclaw/openclaw.json` — Telegram bot token, Slack bot/app tokens, Twilio credentials, gateway auth token, Moonshot API key
-- `~/.openclaw/env` — Home Assistant URL and token
-- `~/bin/openclaw-health-monitor.sh` — Telegram bot token + chat ID (hardcoded for alert delivery)
-- `~/bin/openclaw-nightly-update.sh` — Telegram bot token + chat ID (hardcoded for alert delivery)
+ALL secrets consolidated into `~/.openclaw/.env` (permissions 600, 21 variables). Config files use `${ENV_VAR}` references. Shell scripts source .env. No hardcoded tokens in any active scripts.
 
-If the Telegram bot token is rotated, it must be updated in ALL of these locations.
+Key locations:
+- `~/.openclaw/.env` -- ALL secrets (Telegram, Discord, Slack, Twilio, API keys, etc.)
+- `~/.openclaw/openclaw.json` -- uses `${ENV_VAR}` references throughout
+- `~/.openclaw/agents/main/agent/auth-profiles.json` -- uses `${ANTHROPIC_API_KEY}` reference
+- `~/bin/openclaw-health-monitor.sh` -- sources .env, uses $TELEGRAM_BOT_TOKEN
+- `~/bin/openclaw-nightly-update.sh` -- sources .env, uses $TELEGRAM_BOT_TOKEN
+
+If the Telegram bot token is rotated, update ONLY `~/.openclaw/.env` and restart the gateway.
+
+### 8. Security Status (2026-03-02)
+
+Full security audit (8 items) + health check (12 findings) completed 2026-03-02.
+- Firewall enabled, stealth mode ON, Twilio webhook signature verification enabled
+- All secrets migrated from plaintext to .env references
+- OPEN: Discord groupPolicy="open" (CRITICAL) -- should be "allowlist"
+- OPEN: denyCommands list (12 entries) all use invalid command names
+- OPEN: hooks.allowRequestSessionKey=true -- should be false
+- See RUNBOOK.md for full details and action plan
 
 ---
 
@@ -376,6 +389,8 @@ If the Telegram bot token is rotated, it must be updated in ALL of these locatio
 
 | Date | Change | Details |
 |---|---|---|
+| 2026-03-02 | Security audit + health check | 8 security fixes (secrets migration, Twilio sig verify, firewall stealth, etc.) + 12-finding health check. See RUNBOOK.md |
+| 2026-03-02 | Secrets consolidated to .env | All 21 secrets now in ~/.openclaw/.env (600 perms). Scripts source .env. Zero hardcoded tokens |
 | 2026-02-27 | Fixed memorySearch.provider | Changed `"lancedb"` → `"local"` to resolve fatal config validation error |
 | 2026-02-27 | Fixed voice-call serve block | Removed invalid `serve` property from voice-call plugin config |
 | 2026-02-27 | Created this context file | Comprehensive documentation of Nash's configuration and architecture |
