@@ -1,279 +1,88 @@
-# Claude Desktop MCP Servers - Quick Reference Guide
+# Claude Desktop & Claude Code — Quick Reference
 
-**Last Updated:** January 17, 2026
-**Total MCP Servers:** 15
-
----
-
-## 📁 File & Data Management
-
-### **Filesystem**
-- **Access:** Documents, Desktop, Downloads, Projects
-- **Use for:** Reading/writing files, managing projects
-- **Example:** "Read all markdown files in Documents folder"
-
-### **SQLite**
-- **Database:** ~/Documents/databases/claude.db
-- **Use for:** Structured data storage, analysis, reporting
-- **Example:** "Create a table to track my leads and store this data"
-
-### **Git**
-- **Repository:** ~/Projects/zillow-property-tracker
-- **Use for:** Version control, commits, branches
-- **Example:** "Show me recent commits in my zillow project"
+**Machine:** MacBook Pro M5 Max 128GB (Primary Management)
+**Last Updated:** 2026-04-09
 
 ---
 
-## 🔍 Search & Discovery
+## Active MCP Servers (8)
 
-### **Brave Search**
-- **Type:** Keyword-based web search
-- **Use for:** General queries, news, current events
-- **Example:** "Search for recent real estate market trends"
-
-### **Exa Search** ⭐ NEW
-- **Type:** AI-powered semantic search
-- **Use for:** Finding specific content, research papers, niche topics
-- **Example:** "Find technical articles about property valuation algorithms"
-- **Status:** ⚠️ Needs API key
-
-### **Everything** ⭐ NEW
-- **Type:** Fast local file search (macOS)
-- **Use for:** Finding files instantly across entire Mac
-- **Example:** "Find all PDF files related to real estate"
+| Server | Command | Purpose | Status |
+|--------|---------|---------|--------|
+| filesystem | npx @modelcontextprotocol/server-filesystem | Read/write ~/Documents and ~/Development | ✅ |
+| sequential-thinking | node (global) | Structured reasoning for complex tasks | ✅ |
+| memory | node (global) | Persistent knowledge graph | ✅ |
+| time | python3 -m mcp_server_time | Timezone-aware time queries | ✅ |
+| netlify | npx @netlify/mcp | Netlify deploy and management | ✅ |
+| github | npx @modelcontextprotocol/server-github | GitHub repo management (PAT from .env) | ✅ |
+| openclaw-nash | node openclaw-mcp | Nash — NY Library Mac Studio (100.65.195.9:18800) | ✅ |
+| openclaw-lex | node openclaw-mcp | Lex — TN Mac Studio (100.127.242.121:18800) | ✅ |
 
 ---
 
-## 🌐 Web Automation & Scraping
+## Managed AI Nodes
 
-### **Fetch** ⭐ NEW
-- **Type:** Web content extraction
-- **Use for:** Scraping websites, extracting data, downloading content
-- **Example:** "Fetch and extract the main content from this URL"
-
-### **Playwright** ⭐ NEW
-- **Type:** Advanced browser automation
-- **Use for:** LinkedIn automation, complex web interactions, form filling
-- **Example:** "Navigate to this LinkedIn profile and extract the work history"
-
-### **Puppeteer**
-- **Type:** Browser automation (simpler than Playwright)
-- **Use for:** Screenshots, PDF generation, basic automation
-- **Example:** "Take a screenshot of this website"
+| Alias | Machine | Tailscale IP | OpenClaw | SSH |
+|-------|---------|-------------|---------|-----|
+| `nash` | NY Library Mac Studio M4 Max | 100.65.195.9 | ✅ live (openclaw-nash) | `ssh nash` |
+| `lex` | TN Mac Studio M4 Max | 100.127.242.121 | ✅ live (openclaw-lex) | `ssh lex` |
+| `mini02` | Mac Mini 02 | 100.122.79.7 | ⏳ not installed | `ssh mini02` |
+| `mini03` | Mac Mini 03 | 100.109.233.117 | ⏳ not installed | `ssh mini03` |
 
 ---
 
-## 📄 Document Processing
+## Claude Code Launcher (`cc`)
 
-### **Docling**
-- **Type:** Document conversion (PDF, Word, etc.)
-- **Use for:** Converting documents to markdown, extracting text
-- **Example:** "Convert this PDF to markdown format"
-
-### **YouTube Transcript** ⭐ NEW
-- **Type:** Video transcript extraction
-- **Use for:** Getting transcripts from YouTube videos
-- **Example:** "Get the transcript from this YouTube video: [URL]"
+| Option | Workspace | Notes |
+|--------|-----------|-------|
+| 1 | General | Workflow rules only |
+| 2 | QuickFi | + QuickFi project context |
+| 3 | CLAUDE-Context | + repo context |
+| 4 | Lex (TN Studio) | TN Mac Studio OpenClaw via Tailscale — full autonomy |
+| 5 | Nash (Remote) | NY Mac Studio OpenClaw via Tailscale |
 
 ---
 
-## 💼 Business & Productivity
+## Key File Locations
 
-### **GitHub**
-- **Connected:** ✅ With your personal access token
-- **Use for:** Managing repos, issues, PRs, code search
-- **Example:** "Show me open issues in my repositories"
-
-### **Google Maps** ⭐ NEW
-- **Type:** Location and mapping data
-- **Use for:** Property locations, distance calculations, place info
-- **Example:** "Find properties within 5 miles of downtown Nashville"
-- **Status:** ⚠️ Needs API key
-
-### **Memory**
-- **Type:** Persistent context storage
-- **Use for:** Remembering information across conversations
-- **Example:** "Remember that my target market is Nashville real estate investors"
+| File | Path | Purpose |
+|------|------|---------|
+| Claude Code config | `~/.claude/config.json` | MCP servers for Claude Code |
+| Claude Desktop config | `~/Library/Application Support/Claude/claude_desktop_config.json` | MCP servers for Claude Desktop |
+| Claude Code settings | `~/.claude/settings.json` | Global behavior flags |
+| CLAUDE.md | `~/.claude/CLAUDE.md` | Workflow rules + machine/fleet context |
+| API keys / secrets | `~/.claude/.env` | GitHub PAT, Slack, Airtable, OpenAI tokens |
+| SSH config | `~/.ssh/config` | Host aliases for all managed nodes |
+| cc launcher | `~/bin/cc` | Claude Code workspace menu |
+| MCP logs | `~/Library/Logs/Claude/mcp-server-<name>.log` | Per-server diagnostics |
 
 ---
 
-## 🧠 Enhanced Capabilities
+## Remote Management
 
-### **Sequential Thinking** ⭐ NEW
-- **Type:** Advanced reasoning for complex problems
-- **Use for:** Multi-step analysis, strategic planning, complex research
-- **Example:** "Use sequential thinking to analyze the best market entry strategy"
+```bash
+# SSH to any node
+ssh nash       # NY Library Mac Studio
+ssh lex        # TN Mac Studio
+ssh mini02     # Mac Mini 02
+ssh mini03     # Mac Mini 03
 
----
+# OpenClaw gateway health check
+curl http://100.65.195.9:18800/      # Nash
+curl http://100.127.242.121:18800/   # Lex
 
-## 🎯 Common Workflows
-
-### Real Estate Research
-```
-Combining: Google Maps + Fetch + SQLite
-1. Find properties in target area (Maps)
-2. Scrape property details (Fetch)
-3. Store in database (SQLite)
-4. Analyze trends
-```
-
-### LinkedIn Lead Generation
-```
-Combining: Playwright + Fetch + Memory
-1. Search for prospects (Playwright)
-2. Extract profile data (Fetch)
-3. Store research notes (Memory)
-4. Export to CSV (Filesystem)
-```
-
-### YouTube Content Analysis
-```
-Combining: YouTube Transcript + Sequential Thinking + Memory
-1. Extract transcript (YouTube)
-2. Analyze key points (Sequential Thinking)
-3. Store insights (Memory)
-4. Generate summary (Filesystem)
-```
-
-### Market Research
-```
-Combining: Exa + Brave Search + Docling + SQLite
-1. Find research papers (Exa)
-2. Search recent news (Brave)
-3. Convert PDFs (Docling)
-4. Analyze and store (SQLite)
-```
-
-### Competitor Analysis
-```
-Combining: Playwright + GitHub + Memory + Sequential Thinking
-1. Research companies (Playwright on LinkedIn)
-2. Check their GitHub (GitHub)
-3. Store findings (Memory)
-4. Strategic analysis (Sequential Thinking)
+# Power settings (all nodes configured as always-on servers)
+# sleep=0, disksleep=0, powernap=0, autorestart=1, displaysleep=0
 ```
 
 ---
 
-## 💡 Pro Tips
+## Troubleshooting
 
-### For Research:
-- Start with **Exa** for semantic search, fall back to **Brave** for current events
-- Use **Sequential Thinking** for complex, multi-step analysis
-- Store findings in **Memory** for quick recall
-
-### For Automation:
-- Use **Playwright** for complex interactions (LinkedIn, forms)
-- Use **Puppeteer** for simple tasks (screenshots, PDFs)
-- Use **Fetch** for static content extraction
-
-### For Data Management:
-- **SQLite** for structured data you'll query
-- **Memory** for quick notes and context
-- **Filesystem** for reports and exports
-
-### For LinkedIn:
-- Use **Playwright** to navigate and interact
-- Use **Fetch** to extract specific content
-- Add delays (2-5 seconds) between actions
-- Store results in **SQLite** for analysis
-
----
-
-## 🚀 Example Prompts
-
-### YouTube Research:
-```
-"Get the transcript from this YouTube video and summarize the key points: [URL]"
-```
-
-### LinkedIn Profile Research:
-```
-"Use Playwright to extract information from this LinkedIn profile: [URL]
-Store the work history and skills in Memory tagged as 'lead-research'"
-```
-
-### Property Research:
-```
-"Use Google Maps to find all properties within 3 miles of [address]
-Then use Fetch to get details from each property listing
-Store results in SQLite database"
-```
-
-### Market Analysis:
-```
-"Use Exa to find recent articles about [topic]
-Then use Sequential Thinking to analyze trends
-Save analysis to Documents/market-analysis.md"
-```
-
-### File Search:
-```
-"Use Everything to find all Excel files related to 'property' or 'real estate'
-from the last 30 days"
-```
-
----
-
-## ⚙️ Configuration Status
-
-| Server | Status | Notes |
-|--------|--------|-------|
-| Filesystem | ✅ Active | 4 directories |
-| Docling | ✅ Active | With caching |
-| Memory | ✅ Active | - |
-| SQLite | ✅ Active | claude.db |
-| Git | ✅ Active | zillow-property-tracker |
-| Puppeteer | ✅ Active | - |
-| GitHub | ✅ Active | Authenticated |
-| Brave Search | ✅ Active | Authenticated |
-| YouTube Transcript | ✅ Active | - |
-| Fetch | ✅ Active | - |
-| Playwright | ✅ Active | - |
-| Sequential Thinking | ✅ Active | - |
-| Everything | ✅ Active | - |
-| Exa | ⚠️ Pending | Need API key |
-| Google Maps | ⚠️ Pending | Need API key |
-
----
-
-## 🔑 Pending Setup
-
-### To Complete Full Setup:
-
-1. **Get Exa API Key**
-   - Visit: https://exa.ai/
-   - Sign up for free account
-   - Copy API key
-   - Provide to me to add to config
-
-2. **Get Google Maps API Key**
-   - Visit: https://console.cloud.google.com/google/maps-apis
-   - Create project
-   - Enable Maps JavaScript API and Places API
-   - Create credentials
-   - Copy API key
-   - Provide to me to add to config
-
----
-
-## 📚 Additional Resources
-
-- **LinkedIn Automation Guide:** ~/Documents/LinkedIn-Automation-Workflow.md
-- **Claude Desktop Logs:** ~/Library/Logs/Claude/
-- **SQLite Database:** ~/Documents/databases/claude.db
-- **Config File:** ~/Library/Application Support/Claude/claude_desktop_config.json
-
----
-
-## 🆘 Getting Help
-
-Ask Claude Desktop:
-- "Show me examples of using [server name]"
-- "Help me create a workflow for [task]"
-- "What's the best way to [accomplish goal]?"
-- "Combine [server 1] and [server 2] to [do something]"
-
----
-
-**Happy Automating! 🚀**
+| Problem | Check |
+|---------|-------|
+| openclaw-nash/lex not connecting | `curl http://<ip>:18800/` — is gateway up? |
+| Gateway down | `ssh <node>` → `launchctl list \| grep gateway` |
+| Gateway config error | `ssh <node>` → `tail -20 ~/.openclaw/logs/gateway.err.log` |
+| Gateway restart | `ssh <node>` → `launchctl bootout gui/$(id -u)/ai.openclaw.gateway && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/ai.openclaw.gateway.plist` |
+| Node offline | Check `tailscale status` — sleep settings should prevent this |

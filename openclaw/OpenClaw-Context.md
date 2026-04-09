@@ -1,21 +1,24 @@
 # OpenClaw "Nash" — Complete System Context for Claude
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-04-09
 **Always fetch this file before troubleshooting or modifying OpenClaw**
 
 ---
 
-## ⚠️ Critical: macOS Account Name Discrepancy
+## macOS Account Names — Standardized as of 2026-04-09
 
-Bill uses TWO different macOS account names across machines. This has caused multiple path-related bugs and must always be accounted for:
+All active machines now use `williamverhelle` as the macOS account name. The old `billverhelle` account has been removed from all machines except MacBook Air M2 (transition in progress).
 
 | Machine | macOS Username | Home Directory | Role |
 |---|---|---|---|
-| Mac Studio M4 Max (NY Library) | `williamverhelle` | `/Users/williamverhelle` | OpenClaw host, primary workstation |
-| MacBook Pro | `billverhelle` | `/Users/billverhelle` | Mobile development, Claude Code |
-| MacBook Air M2 | `williamverhelle` | `/Users/williamverhelle` | Travel / lightweight tasks |
+| NY Library Mac Studio M4 Max | `williamverhelle` | `/Users/williamverhelle` | Nash (OpenClaw), primary AI node |
+| TN Mac Studio M4 Max | `williamverhelle` | `/Users/williamverhelle` | Lex (OpenClaw), TN AI node |
+| MacBook Pro M5 Max | `williamverhelle` | `/Users/williamverhelle` | Primary management computer |
+| MacBook Air M2 | `williamverhelle` | `/Users/williamverhelle` | Travel / lightweight tasks (transition in progress) |
+| Mac Mini 02 | `williamverhelle` | `/Users/williamverhelle` | Managed node (OpenClaw not yet installed) |
+| Mac Mini 03 | `williamverhelle` | `/Users/williamverhelle` | Managed node (OpenClaw not yet installed) |
 
-**Impact:** Any script, path, launchd plist, or config referencing a home directory MUST use the correct username for the target machine. Hardcoding either name will break on the other machine. Use `$HOME` or `~` where possible. When absolute paths are required, verify which machine you are operating on with `whoami` before proceeding.
+**GitHub:** The repo owner is `BillVerhelle` (capitalized, no dot) — this is a GitHub username, independent of macOS accounts. Repo URL: `https://github.com/BillVerhelle/CLAUDE-Context.git`
 
 **GitHub:** The repo owner is `BillVerhelle` (capitalized, no dot) — this is a GitHub username, independent of macOS accounts. Repo URL: `https://github.com/BillVerhelle/CLAUDE-Context.git`
 
@@ -128,8 +131,8 @@ Moonshot provider uses `https://api.moonshot.ai/v1` with OpenAI-compatible compl
 |---|---|
 | Port | `18800` |
 | Mode | `local` |
-| Bind | `loopback` (127.0.0.1 only) |
-| Auth mode | `token` (token stored in config — do not expose) |
+| Bind | `tailnet` (Tailscale interface — accessible from all Tailscale devices) |
+| Auth mode | `token` (token stored in .env — do not expose) |
 | Control UI | `allowInsecureAuth: false` |
 | Trusted proxies | Tailscale (`100.64.0.0/10`), Cloudflare ranges |
 | Tailscale mode | `off` (resetOnExit: false) |
