@@ -1,6 +1,6 @@
 # OpenClaw "Nash" — Complete System Context for Claude
 
-**Last Updated:** 2026-04-09
+**Last Updated:** 2026-04-10
 **Always fetch this file before troubleshooting or modifying OpenClaw**
 
 ---
@@ -15,10 +15,8 @@ All active machines now use `williamverhelle` as the macOS account name. The old
 | TN Mac Studio M4 Max | `williamverhelle` | `/Users/williamverhelle` | Lex (OpenClaw), TN AI node |
 | MacBook Pro M5 Max | `williamverhelle` | `/Users/williamverhelle` | Primary management computer |
 | MacBook Air M2 | `williamverhelle` | `/Users/williamverhelle` | Travel / lightweight tasks (transition in progress) |
-| Mac Mini 02 | `williamverhelle` | `/Users/williamverhelle` | Managed node (OpenClaw not yet installed) |
-| Mac Mini 03 | `williamverhelle` | `/Users/williamverhelle` | Managed node (OpenClaw not yet installed) |
-
-**GitHub:** The repo owner is `BillVerhelle` (capitalized, no dot) — this is a GitHub username, independent of macOS accounts. Repo URL: `https://github.com/BillVerhelle/CLAUDE-Context.git`
+| Mac Mini 02 (Rex) | `williamverhelle` | `/Users/williamverhelle` | Managed node — OpenClaw 2026.4.2, Tailscale 100.69.50.34 |
+| Mac Mini 03 (Mack) | `williamverhelle` | `/Users/williamverhelle` | Managed node — OpenClaw 2026.4.2, Tailscale 100.92.84.30 |
 
 **GitHub:** The repo owner is `BillVerhelle` (capitalized, no dot) — this is a GitHub username, independent of macOS accounts. Repo URL: `https://github.com/BillVerhelle/CLAUDE-Context.git`
 
@@ -46,10 +44,11 @@ Nash runs as a **native macOS application** — NOT Docker. This changed from th
 
 | Component | Version | Path |
 |---|---|---|
-| OpenClaw | 2026.2.22 | `~/.openclaw/bin/openclaw` |
-| Node.js | v22.22.0 | `~/.openclaw/tools/node-v22.22.0/bin/node` |
-| macOS | 26.4 (Tahoe) build 25E5218f | — |
+| OpenClaw | 2026.4.8 | `~/.npm-global/lib/node_modules/openclaw` |
+| Node.js | v22.22.1 | `/usr/local/bin/node` |
+| macOS | 26.4 (Tahoe) | — |
 | Primary Model | `anthropic/claude-opus-4-6` | — |
+| Tailscale | 1.96.4 (brew) + 1.96.5 daemon | system daemon installed 2026-04-10 |
 
 ---
 
@@ -184,13 +183,19 @@ Moonshot provider uses `https://api.moonshot.ai/v1` with OpenAI-compatible compl
 |---|---|---|
 | `telegram` | ✅ | Primary communication channel |
 | `slack` | ✅ | QuickFi + Family workspaces |
+| `discord` | ✅ | Bot: Nash NY OpenClaw (token in .env as DISCORD_BOT_TOKEN) |
 | `voice-call` | ✅ | Twilio-based, Tailscale funnel |
 | `imessage` | ✅ | Native macOS |
-| `memory-lancedb` | ✅ | Listed in allow list + entries but NOT active as search provider — see Known Issues |
+| `memory-lancedb` | ✅ | Active memory slot — 334MB index, 50K vectors |
+| `acpx` | ✅ | ACP runtime backend |
+| `browser` | ✅ | Chrome integration |
+| `claude-mem` | ❌ | Disabled (set in plugins.entries; LaunchAgent unloaded 2026-04-10) |
 | `memory-core` | ❌ | Disabled |
 | `msteams` | ❌ | Configured but disabled |
 
-Plugin allow list: `telegram`, `slack`, `voice-call`, `imessage`, `memory-lancedb`
+Plugin allow list (plugins.allow): `claude-mem`, `discord`, `imessage`, `llm-task`, `lobster`, `memory-lancedb`, `slack`, `telegram`, `voice-call`, `anthropic`, `openai`, `moonshot`, `acpx`, `browser`
+
+Memory slot: `plugins.slots.memory = "memory-lancedb"` — qmd backend at `/Users/williamverhelle/bin/qmd` (bun + lancedb, 334MB index)
 
 ### Tools
 
@@ -240,15 +245,17 @@ Jobs config: `~/.openclaw/cron/jobs.json`
 
 | Service | Address | Purpose |
 |---|---|---|
-| Gateway | `127.0.0.1:18800` | WebSocket + dashboard |
-| Gateway dashboard | `http://127.0.0.1:18800/` | Web UI |
-| Health check | `http://127.0.0.1:18800/health` | Health monitor target |
+| Gateway | `100.65.195.9:18800` | WebSocket + dashboard (tailnet-bound, NOT loopback) |
+| Gateway dashboard | `http://100.65.195.9:18800/` | Web UI (accessible from any Tailscale device) |
+| Health check | `http://100.65.195.9:18800/health` | Returns `{"ok":true,"status":"live"}` |
 | Chrome debug | `127.0.0.1:18811` | Browser automation |
 | Voice webhook | `https://ny-library-mac-studio.tail3f7308.ts.net/voice/webhook` | Twilio inbound (via Tailscale funnel) |
 
 Tailscale hostname: `ny-library-mac-studio.tail3f7308.ts.net`
 Tailscale IP: `100.65.195.9`
 Local IP: `192.168.1.113`
+
+⚠️ **Gateway binds to tailnet IP, not loopback.** Commands using `127.0.0.1:18800` will fail when run locally on Nash — always use `100.65.195.9:18800` or `localhost` alias is not configured.
 
 ### Voice Wake Words
 
@@ -268,10 +275,11 @@ OpenClaw manages its own Chrome Beta instance:
 
 ### Step 1: Check Gateway Status
 ```bash
-~/.openclaw/bin/openclaw gateway status
-curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18800/
+# Gateway binds to tailnet IP (100.65.195.9), NOT loopback
+curl -s http://100.65.195.9:18800/health
+# Returns {"ok":true,"status":"live"} when healthy
 ```
-A `200` response means the gateway is healthy. `000` means connection refused (gateway down).
+A `{"ok":true}` response means the gateway is healthy. Connection refused means gateway is down.
 
 ### Step 2: Check Error Log FIRST
 ```bash
@@ -287,26 +295,23 @@ Shows gateway up/down history, restart attempts, session size warnings, and arch
 
 ### Step 4: Gateway Restart Procedure
 ```bash
-# Stop cleanly
-~/.openclaw/bin/openclaw gateway stop
-sleep 2
+# Restart via launchctl (preferred)
+launchctl unload ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+launchctl load ~/Library/LaunchAgents/ai.openclaw.gateway.plist
 
-# Re-bootstrap the LaunchAgent
-launchctl bootstrap gui/501 ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+# Verify (gateway binds to tailnet IP)
 sleep 5
-
-# Verify
-curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18800/
+curl -s http://100.65.195.9:18800/health
 ```
-
-**If `gateway stop` unloads the service entirely** (shows "Gateway service not loaded"), you must re-bootstrap via `launchctl bootstrap`. The `openclaw gateway start` command will tell you this.
 
 **If port 18800 is already in use** after a stop attempt, a stale process may be lingering:
 ```bash
 lsof -i :18800
 kill <stale_pid>
 ```
-Then retry the bootstrap.
+Then retry the launchctl load.
+
+**Discord "awaiting gateway readiness" on startup (OC 2026.4.8 known issue):** Discord may take 5–15 minutes to fully connect after gateway restart due to a race condition between Discord WS initialization and qmd memory startup. This resolves automatically — do not repeatedly restart the gateway. Slack and Telegram connect immediately and are unaffected.
 
 ### Step 5: Config Validation
 ```bash
@@ -392,6 +397,11 @@ Full security audit (8 items) + health check (12 findings) completed 2026-03-02.
 
 | Date | Change | Details |
 |---|---|---|
+| 2026-04-10 | Full fleet deployment complete | Nash recovered via physical restart + remote fix. Discord token deployed, claude-mem disabled, plist perms 600. Tailscale system daemon installed (brew 1.96.4); App Store Tailscale removed; IP held at 100.65.195.9. pmset sleep 0 + firewall allow /usr/local/bin/node applied. All 4 nodes now live with system daemon Tailscale. |
+| 2026-04-10 | Gateway bind updated to tailnet | Nash gateway now binds to 100.65.195.9:18800 (not loopback). All health checks and MCP API calls must use tailnet IP. |
+| 2026-04-10 | Discord race condition documented | OC 2026.4.8 known issue: "awaiting gateway readiness" on startup when Discord WS connects before qmd memory finishes initializing. Resolves naturally after multiple restart cycles (~5–15 min). |
+| 2026-04-10 | Mac Mini 02/03 fully deployed | Rex (100.69.50.34) and Mack (100.92.84.30) deployed with OpenClaw 2026.4.2, Claude Code, full LaunchAgents, system daemon Tailscale; openclaw-rex and openclaw-mack MCP servers added to both Claude Code and Desktop configs. |
+| 2026-04-08 | Lex and Nash gateway fixes | Lex: fixed requestTimeoutSeconds config error, bind loopback→tailnet. Nash: bind loopback→tailnet. Both accessible via Tailscale MCP. |
 | 2026-03-02 | Security hardening (session 2) | Discord allowlist (Bill-only), denyCommands rebuilt, hooks locked, log rotation, 320MB freed |
 | 2026-03-02 | Security audit + health check | 8 security fixes (secrets migration, Twilio sig verify, firewall stealth, etc.) + 12-finding health check. See RUNBOOK.md |
 | 2026-03-02 | Secrets consolidated to .env | All 21 secrets now in ~/.openclaw/.env (600 perms). Scripts source .env. Zero hardcoded tokens |

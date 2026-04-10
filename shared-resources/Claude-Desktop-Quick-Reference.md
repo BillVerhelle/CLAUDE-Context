@@ -1,11 +1,11 @@
 # Claude Desktop & Claude Code — Quick Reference
 
 **Machine:** MacBook Pro M5 Max 128GB (Primary Management)
-**Last Updated:** 2026-04-09
+**Last Updated:** 2026-04-10
 
 ---
 
-## Active MCP Servers (8)
+## Active MCP Servers (10)
 
 | Server | Command | Purpose | Status |
 |--------|---------|---------|--------|
@@ -16,7 +16,9 @@
 | netlify | npx @netlify/mcp | Netlify deploy and management | ✅ |
 | github | npx @modelcontextprotocol/server-github | GitHub repo management (PAT from .env) | ✅ |
 | openclaw-nash | node openclaw-mcp | Nash — NY Library Mac Studio (100.65.195.9:18800) | ✅ |
-| openclaw-lex | node openclaw-mcp | Lex — TN Mac Studio (100.127.242.121:18800) | ✅ |
+| openclaw-lex | node openclaw-mcp | Lex — TN Mac Studio (100.96.133.64:18800) | ✅ |
+| openclaw-rex | node openclaw-mcp | Rex — Mac Mini 02 (100.69.50.34:18800) | ✅ |
+| openclaw-mack | node openclaw-mcp | Mack — Mac Mini 03 (100.92.84.30:18800) | ✅ |
 
 ---
 
@@ -24,10 +26,10 @@
 
 | Alias | Machine | Tailscale IP | OpenClaw | SSH |
 |-------|---------|-------------|---------|-----|
-| `nash` | NY Library Mac Studio M4 Max | 100.65.195.9 | ✅ live (openclaw-nash) | `ssh nash` |
-| `lex` | TN Mac Studio M4 Max | 100.127.242.121 | ✅ live (openclaw-lex) | `ssh lex` |
-| `mini02` | Mac Mini 02 | 100.122.79.7 | ⏳ not installed | `ssh mini02` |
-| `mini03` | Mac Mini 03 | 100.109.233.117 | ⏳ not installed | `ssh mini03` |
+| `nash` | NY Library Mac Studio M4 Max | 100.65.195.9 | ✅ live — OC 2026.4.8 (openclaw-nash) | `ssh nash` |
+| `lex` | TN Mac Studio M4 Max | 100.96.133.64 | ✅ live — OC 2026.4.2 (openclaw-lex) | `ssh lex` |
+| `mini02` | Mac Mini 02 (Rex) | 100.69.50.34 | ✅ live — OC 2026.4.2 (openclaw-rex) | `ssh mini02` |
+| `mini03` | Mac Mini 03 (Mack) | 100.92.84.30 | ✅ live — OC 2026.4.2 (openclaw-mack) | `ssh mini03` |
 
 ---
 
@@ -62,17 +64,22 @@
 
 ```bash
 # SSH to any node
-ssh nash       # NY Library Mac Studio
-ssh lex        # TN Mac Studio
-ssh mini02     # Mac Mini 02
-ssh mini03     # Mac Mini 03
+ssh nash       # NY Library Mac Studio (100.65.195.9)
+ssh lex        # TN Mac Studio (100.96.133.64)
+ssh mini02     # Mac Mini 02 / Rex (100.69.50.34)
+ssh mini03     # Mac Mini 03 / Mack (100.92.84.30)
 
-# OpenClaw gateway health check
-curl http://100.65.195.9:18800/      # Nash
-curl http://100.127.242.121:18800/   # Lex
+# OpenClaw gateway health check (all bind to tailnet IP, NOT loopback)
+curl http://100.65.195.9:18800/health    # Nash
+curl http://100.96.133.64:18800/health   # Lex
+curl http://100.69.50.34:18800/health    # Rex
+curl http://100.92.84.30:18800/health    # Mack
 
 # Power settings (all nodes configured as always-on servers)
 # sleep=0, disksleep=0, powernap=0, autorestart=1, displaysleep=0
+
+# Tailscale system daemon installed on ALL nodes (2026-04-09/10)
+# FileVault unlock required after hard reboot → Tailscale auto-connects (no login needed)
 ```
 
 ---
