@@ -1,7 +1,7 @@
 # Claude Desktop & Claude Code — Quick Reference
 
 **Machine:** MacBook Pro M5 Max 128GB (Primary Management)
-**Last Updated:** 2026-04-10
+**Last Updated:** 2026-04-28
 
 ---
 
@@ -93,3 +93,5 @@ curl http://100.92.84.30:18800/health    # Mack
 | Gateway config error | `ssh <node>` → `tail -20 ~/.openclaw/logs/gateway.err.log` |
 | Gateway restart | `ssh <node>` → `launchctl bootout gui/$(id -u)/ai.openclaw.gateway && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/ai.openclaw.gateway.plist` |
 | Node offline | Check `tailscale status` — sleep settings should prevent this |
+| Claude Desktop MCP extension crashes on startup (initializes then exits within ~100ms; `UtilityProcess did not exit gracefully` in `main.log`) | Mid-running auto-update crash. Full Cmd+Q quit and relaunch — activates cached update and clears the zombie utility process |
+| `Failed to spawn python (via disclaimer): code 127` in Settings → Developer | Legacy `python` binary missing (Apple removed `/usr/bin/python` in macOS 12.3). Fix: `ln -s /opt/homebrew/bin/python3.13 /opt/homebrew/bin/python` (already applied 2026-04-28) |
